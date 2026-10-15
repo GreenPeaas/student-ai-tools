@@ -1,0 +1,244 @@
+<title>Explain It</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f8f7f4; --fg: #1a1a1a; --fg-muted: #6b6b6b;
+    --surface: #ffffff; --border: #e2e0db;
+    --accent: #2563eb; --accent-light: #dbeafe;
+    --tag-bg: #f0f0ed;
+    --font-display: 'Syne', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111110; --fg: #f0ede8; --fg-muted: #8a8783;
+      --surface: #1c1c1a; --border: #2e2d2a;
+      --accent: #3b82f6; --accent-light: #1e3a5f;
+      --tag-bg: #222220;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111110; --fg: #f0ede8; --fg-muted: #8a8783;
+    --surface: #1c1c1a; --border: #2e2d2a;
+    --accent: #3b82f6; --accent-light: #1e3a5f;
+    --tag-bg: #222220;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+  }
+  nav { display: flex; align-items: center; justify-content: space-between; padding-block: 20px; border-bottom: 1px solid var(--border); max-width: 760px; margin: 0 auto; }
+  .nav-brand { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; color: var(--fg); text-decoration: none; letter-spacing: -0.02em; }
+  .nav-brand span { color: var(--accent); }
+  .back-link { font-size: 0.85rem; color: var(--fg-muted); text-decoration: none; }
+  .back-link:hover { color: var(--fg); }
+  .page-wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 80px; }
+  .page-header { margin-bottom: 32px; }
+  .tool-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); background: var(--accent-light); padding: 4px 10px; border-radius: 100px; margin-bottom: 12px; }
+  h1 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1.1; text-wrap: balance; margin-bottom: 8px; }
+  .subtitle { font-size: 0.95rem; color: var(--fg-muted); max-width: 52ch; }
+  .api-row { display: flex; gap: 8px; margin-bottom: 24px; }
+  .api-row input { flex: 1; min-width: 0; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-family: var(--font-body); font-size: 0.875rem; }
+  .api-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .api-row input::placeholder { color: var(--fg-muted); }
+  label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  textarea { width: 100%; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); color: var(--fg); font-family: var(--font-body); font-size: 0.9rem; line-height: 1.6; resize: vertical; min-height: 160px; }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  textarea::placeholder { color: var(--fg-muted); }
+
+  /* LEVEL SELECTOR */
+  .level-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; margin-bottom: 20px; }
+  .level-btn {
+    padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--fg-muted); font-size: 0.875rem;
+    font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: var(--font-body);
+    display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
+  }
+  .level-btn .level-name { font-weight: 700; font-size: 0.9rem; color: var(--fg); }
+  .level-btn .level-desc { font-size: 0.75rem; }
+  .level-btn.active { background: var(--accent-light); border-color: var(--accent); }
+  .level-btn.active .level-name { color: var(--accent); }
+  .level-btn:hover:not(.active) { border-color: var(--accent); }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-family: var(--font-body); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .btn:hover { opacity: 0.88; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status-msg { padding: 12px 16px; border-radius: 8px; font-size: 0.875rem; margin-top: 12px; display: none; }
+  .status-msg.error { background: #fee2e2; color: #b91c1c; display: block; }
+  .spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULT */
+  #result-box { margin-top: 32px; display: none; }
+  .original-box {
+    background: var(--tag-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 20px;
+    font-size: 0.875rem; color: var(--fg-muted); line-height: 1.6;
+    margin-bottom: 16px; font-style: italic;
+  }
+  .original-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); margin-bottom: 6px; font-style: normal; }
+  .explanation-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 24px;
+    font-size: 0.95rem; line-height: 1.75;
+  }
+  .explanation-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 10px; }
+  .copy-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+  .copy-btn { display: inline-flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--border); border-radius: 8px; color: var(--accent); font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; padding: 6px 14px; cursor: pointer; transition: border-color 0.15s; }
+  .copy-btn:hover { border-color: var(--accent); }
+  @media (max-width: 600px) { h1 { font-size: 1.6rem; } .level-grid { gap: 6px; } }
+</style>
+
+<nav>
+  <a class="nav-brand" href="index.html">Student<span>AI</span></a>
+  <a class="back-link" href="index.html">← All tools</a>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <div class="tool-badge">💡 Comprehension</div>
+    <h1>Explain It</h1>
+    <p class="subtitle">Paste any dense paragraph from a textbook or lecture. Choose your level and get a plain-English breakdown that actually makes sense.</p>
+  </div>
+
+  <div class="api-row">
+    <input type="password" id="api-key" placeholder="Paste your Anthropic API key (sk-ant-...)" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div>
+    <label for="text-input">Paste the confusing text</label>
+    <textarea id="text-input" placeholder="Paste any passage, definition, concept, or paragraph you want explained..."></textarea>
+
+    <div style="margin-top:16px;">
+      <label>Explain it like I'm a…</label>
+      <div class="level-grid">
+        <button class="level-btn" onclick="setLevel('high schooler', this)">
+          <span class="level-name">High schooler</span>
+          <span class="level-desc">Simple, no jargon</span>
+        </button>
+        <button class="level-btn active" onclick="setLevel('college freshman', this)">
+          <span class="level-name">College freshman</span>
+          <span class="level-desc">Clear but not dumbed down</span>
+        </button>
+        <button class="level-btn" onclick="setLevel('student who already knows the basics', this)">
+          <span class="level-name">Intermediate</span>
+          <span class="level-desc">Keeps key terms</span>
+        </button>
+        <button class="level-btn" onclick="setLevel('subject matter expert reviewing for depth', this)">
+          <span class="level-name">Expert</span>
+          <span class="level-desc">Full nuance, no shortcuts</span>
+        </button>
+      </div>
+    </div>
+
+    <button class="btn" id="explain-btn" onclick="explain()">
+      <span id="btn-text">Explain It</span>
+    </button>
+  </div>
+
+  <div id="status" class="status-msg"></div>
+
+  <div id="result-box">
+    <div class="original-box">
+      <p class="original-label">Original text</p>
+      <span id="original-text"></span>
+    </div>
+    <div class="explanation-box">
+      <p class="explanation-label" id="explanation-label">Explanation</p>
+      <div id="explanation-out"></div>
+    </div>
+    <div class="copy-row">
+      <button class="copy-btn" onclick="copyExplanation()">📋 Copy explanation</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentLevel = 'college freshman';
+function setLevel(level, btn) {
+  currentLevel = level;
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function explain() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  const text = document.getElementById('text-input').value.trim();
+  if (!apiKey) { showStatus('Please enter your Anthropic API key above.', 'error'); return; }
+  if (!text) { showStatus('Please paste the text you want explained.', 'error'); return; }
+
+  const statusEl = document.getElementById('status');
+  const resultBox = document.getElementById('result-box');
+  statusEl.className = 'status-msg'; statusEl.textContent = '';
+  document.getElementById('explain-btn').disabled = true;
+  document.getElementById('btn-text').innerHTML = '<span class="spinner">⟳</span> Thinking…';
+  resultBox.style.display = 'none';
+
+  const prompt = `Explain the following text to a ${currentLevel}.
+
+Write a clear, direct explanation in plain English. Break down any jargon. Use an analogy if it helps. Be thorough but don't pad — say what needs to be said and stop.
+
+TEXT TO EXPLAIN:
+${text}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 1024,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `API error ${res.status}`); }
+    const data = await res.json();
+    const explanation = data.content[0].text.trim();
+
+    // Render with basic paragraph formatting
+    document.getElementById('original-text').textContent = text.length > 300 ? text.slice(0, 300) + '…' : text;
+    document.getElementById('explanation-out').innerHTML = explanation
+      .split('\n\n').map(p => `<p style="margin-bottom:0.9em">${p.replace(/\n/g, '<br>')}</p>`).join('');
+    document.getElementById('explanation-label').textContent =
+      'Explained for a ' + currentLevel;
+    resultBox.style.display = 'block';
+    window._explanation = explanation;
+  } catch(e) {
+    showStatus('Error: ' + e.message, 'error');
+  } finally {
+    document.getElementById('explain-btn').disabled = false;
+    document.getElementById('btn-text').textContent = 'Explain It';
+  }
+}
+
+function copyExplanation() {
+  if (!window._explanation) return;
+  navigator.clipboard.writeText(window._explanation).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = window._explanation; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  });
+  const btn = event.target;
+  btn.textContent = '✓ Copied!';
+  setTimeout(() => btn.textContent = '📋 Copy explanation', 1800);
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status-msg ' + type;
+}
+</script>

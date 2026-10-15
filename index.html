@@ -1,0 +1,350 @@
+<title>Student AI Tools</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500&display=swap">
+<style>
+  /* Layout: centered column, tool cards in 2-col grid */
+  :root {
+    --bg: #f8f7f4;
+    --fg: #1a1a1a;
+    --fg-muted: #6b6b6b;
+    --surface: #ffffff;
+    --border: #e2e0db;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --tag-bg: #f0f0ed;
+    --font-display: 'Syne', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111110;
+      --fg: #f0ede8;
+      --fg-muted: #8a8783;
+      --surface: #1c1c1a;
+      --border: #2e2d2a;
+      --accent: #3b82f6;
+      --accent-light: #1e3a5f;
+      --tag-bg: #222220;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111110;
+    --fg: #f0ede8;
+    --fg-muted: #8a8783;
+    --surface: #1c1c1a;
+    --border: #2e2d2a;
+    --accent: #3b82f6;
+    --accent-light: #1e3a5f;
+    --tag-bg: #222220;
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 20px;
+    border-bottom: 1px solid var(--border);
+    max-width: 960px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .nav-brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--fg);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+  }
+  .nav-brand span { color: var(--accent); }
+  .nav-links { display: flex; gap: 24px; list-style: none; }
+  .nav-links a {
+    color: var(--fg-muted);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 0.15s;
+  }
+  .nav-links a:hover { color: var(--fg); }
+
+  /* HERO */
+  .hero {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-block: 72px 56px;
+  }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 4px 10px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+    margin-bottom: 20px;
+    max-width: 18ch;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .hero p {
+    font-size: 1.125rem;
+    color: var(--fg-muted);
+    max-width: 52ch;
+    margin-bottom: 32px;
+    line-height: 1.65;
+  }
+  .api-notice {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 0.825rem;
+    color: var(--fg-muted);
+    max-width: 480px;
+    line-height: 1.5;
+  }
+  .api-notice .icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .api-notice a { color: var(--accent); text-decoration: none; }
+  .api-notice a:hover { text-decoration: underline; }
+
+  /* TOOLS GRID */
+  .tools-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding-block: 16px 80px;
+  }
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--fg-muted);
+    margin-bottom: 24px;
+  }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 600px) {
+    .tools-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 2.2rem; }
+    .nav-links { display: none; }
+  }
+
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    text-decoration: none;
+    color: var(--fg);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .tool-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent-light) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .tool-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+  .tool-card:hover::before { opacity: 1; }
+  .tool-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .tool-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--tag-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+  .tool-card-body { position: relative; z-index: 1; }
+  .tool-name {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .tool-desc {
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+    line-height: 1.55;
+  }
+  .tool-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--tag-bg);
+    color: var(--fg-muted);
+    position: relative;
+    z-index: 1;
+    width: fit-content;
+    margin-top: 4px;
+  }
+  .tool-arrow {
+    margin-top: auto;
+    font-size: 1.1rem;
+    color: var(--accent);
+    position: relative;
+    z-index: 1;
+    align-self: flex-end;
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .tool-card:hover .tool-arrow {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    max-width: 960px;
+    margin: 0 auto;
+    padding-block: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  footer p { font-size: 0.8rem; color: var(--fg-muted); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+
+<nav>
+  <a class="nav-brand" href="index.html">Student<span>AI</span></a>
+  <ul class="nav-links">
+    <li><a href="flashcards.html">Flashcards</a></li>
+    <li><a href="syllabus.html">Syllabus</a></li>
+    <li><a href="citation.html">Citations</a></li>
+    <li><a href="explain.html">Explain It</a></li>
+  </ul>
+</nav>
+
+<main>
+  <section class="hero">
+    <div class="hero-eyebrow">
+      <span>✦</span> AI-Powered Study Tools
+    </div>
+    <h1>Study smarter,<br><em>not harder.</em></h1>
+    <p>Four free browser-based tools that use Claude AI to help you crush exams, stay organized, and actually understand your coursework.</p>
+    <div class="api-notice">
+      <span class="icon">🔑</span>
+      <span>These tools use the <a href="https://console.anthropic.com/" target="_blank">Anthropic API</a>. You'll enter your own API key — it's never stored on any server, only in your browser for the session.</span>
+    </div>
+  </section>
+
+  <section class="tools-section">
+    <p class="section-label">Tools — pick one to get started</p>
+    <div class="tools-grid">
+
+      <a class="tool-card" href="flashcards.html">
+        <div class="tool-icon">🃏</div>
+        <div class="tool-card-body">
+          <p class="tool-name">Flashcard Generator</p>
+          <p class="tool-desc">Paste any lecture notes or textbook passage and get a full set of Anki-style Q&amp;A flashcards in seconds.</p>
+          <span class="tool-tag">Study</span>
+        </div>
+        <span class="tool-arrow">→</span>
+      </a>
+
+      <a class="tool-card" href="syllabus.html">
+        <div class="tool-icon">📅</div>
+        <div class="tool-card-body">
+          <p class="tool-name">Syllabus Extractor</p>
+          <p class="tool-desc">Drop in a syllabus and get every assignment, exam, and deadline pulled out into a clean checklist.</p>
+          <span class="tool-tag">Organization</span>
+        </div>
+        <span class="tool-arrow">→</span>
+      </a>
+
+      <a class="tool-card" href="citation.html">
+        <div class="tool-icon">📖</div>
+        <div class="tool-card-body">
+          <p class="tool-name">Citation Formatter</p>
+          <p class="tool-desc">Paste a URL or raw source info and get a properly formatted MLA, APA, or Chicago citation — no login required.</p>
+          <span class="tool-tag">Writing</span>
+        </div>
+        <span class="tool-arrow">→</span>
+      </a>
+
+      <a class="tool-card" href="explain.html">
+        <div class="tool-icon">💡</div>
+        <div class="tool-card-body">
+          <p class="tool-name">Explain It</p>
+          <p class="tool-desc">Paste any dense paragraph from a textbook and get a plain-English explanation at the level you actually need.</p>
+          <span class="tool-tag">Comprehension</span>
+        </div>
+        <span class="tool-arrow">→</span>
+      </a>
+
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Built with the Anthropic API · <a href="https://console.anthropic.com/" target="_blank">Get your API key</a></p>
+  <p>Your API key is never saved to any server.</p>
+</footer>

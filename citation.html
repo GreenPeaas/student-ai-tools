@@ -1,0 +1,241 @@
+<title>Citation Formatter</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f8f7f4; --fg: #1a1a1a; --fg-muted: #6b6b6b;
+    --surface: #ffffff; --border: #e2e0db;
+    --accent: #2563eb; --accent-light: #dbeafe;
+    --tag-bg: #f0f0ed;
+    --font-display: 'Syne', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111110; --fg: #f0ede8; --fg-muted: #8a8783;
+      --surface: #1c1c1a; --border: #2e2d2a;
+      --accent: #3b82f6; --accent-light: #1e3a5f;
+      --tag-bg: #222220;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111110; --fg: #f0ede8; --fg-muted: #8a8783;
+    --surface: #1c1c1a; --border: #2e2d2a;
+    --accent: #3b82f6; --accent-light: #1e3a5f;
+    --tag-bg: #222220;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+  }
+  nav { display: flex; align-items: center; justify-content: space-between; padding-block: 20px; border-bottom: 1px solid var(--border); max-width: 760px; margin: 0 auto; }
+  .nav-brand { font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; color: var(--fg); text-decoration: none; letter-spacing: -0.02em; }
+  .nav-brand span { color: var(--accent); }
+  .back-link { font-size: 0.85rem; color: var(--fg-muted); text-decoration: none; }
+  .back-link:hover { color: var(--fg); }
+  .page-wrap { max-width: 760px; margin: 0 auto; padding-block: 40px 80px; }
+  .page-header { margin-bottom: 32px; }
+  .tool-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); background: var(--accent-light); padding: 4px 10px; border-radius: 100px; margin-bottom: 12px; }
+  h1 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1.1; text-wrap: balance; margin-bottom: 8px; }
+  .subtitle { font-size: 0.95rem; color: var(--fg-muted); max-width: 52ch; }
+  .api-row { display: flex; gap: 8px; margin-bottom: 24px; }
+  .api-row input { flex: 1; min-width: 0; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--fg); font-family: var(--font-body); font-size: 0.875rem; }
+  .api-row input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .api-row input::placeholder { color: var(--fg-muted); }
+  label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 6px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  input[type="text"], input[type="url"] {
+    width: 100%; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--fg); font-family: var(--font-body); font-size: 0.9rem; margin-bottom: 16px;
+  }
+  input[type="text"]:focus, input[type="url"]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input::placeholder { color: var(--fg-muted); }
+  .style-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+  .style-tab {
+    padding: 7px 16px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface); color: var(--fg-muted); font-size: 0.875rem;
+    font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: var(--font-body);
+  }
+  .style-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .style-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
+  .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-family: var(--font-body); font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .btn:hover { opacity: 0.88; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status-msg { padding: 12px 16px; border-radius: 8px; font-size: 0.875rem; margin-top: 12px; display: none; }
+  .status-msg.error { background: #fee2e2; color: #b91c1c; display: block; }
+  .spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULT */
+  #result-box { margin-top: 32px; display: none; }
+  .result-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted); margin-bottom: 8px; }
+  .citation-output {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    font-size: 0.9rem; line-height: 1.7;
+    font-family: 'Georgia', serif;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .copy-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: transparent; border: 1px solid var(--border); border-radius: 8px;
+    color: var(--accent); font-family: var(--font-body); font-size: 0.8rem;
+    font-weight: 600; padding: 6px 14px; cursor: pointer; transition: border-color 0.15s;
+  }
+  .copy-btn:hover { border-color: var(--accent); }
+  .divider { border: none; border-top: 1px solid var(--border); margin-block: 24px; }
+  @media (max-width: 600px) { h1 { font-size: 1.6rem; } }
+</style>
+
+<nav>
+  <a class="nav-brand" href="index.html">Student<span>AI</span></a>
+  <a class="back-link" href="index.html">← All tools</a>
+</nav>
+
+<div class="page-wrap">
+  <div class="page-header">
+    <div class="tool-badge">📖 Writing</div>
+    <h1>Citation Formatter</h1>
+    <p class="subtitle">Paste a URL or raw source details — get a correctly formatted citation in MLA, APA, or Chicago. No login, no paywall.</p>
+  </div>
+
+  <div class="api-row">
+    <input type="password" id="api-key" placeholder="Paste your Anthropic API key (sk-ant-...)" autocomplete="off" spellcheck="false">
+  </div>
+
+  <div>
+    <label>Citation style</label>
+    <div class="style-tabs">
+      <button class="style-tab active" onclick="setStyle('MLA', this)">MLA</button>
+      <button class="style-tab" onclick="setStyle('APA', this)">APA</button>
+      <button class="style-tab" onclick="setStyle('Chicago', this)">Chicago</button>
+    </div>
+
+    <label for="source-input">Source — URL or raw info</label>
+    <input type="text" id="source-input" placeholder="e.g. https://www.nytimes.com/... or: Smith, John. The Great Book. 2020.">
+
+    <hr class="divider">
+    <p style="font-size:0.8rem;color:var(--fg-muted);margin-bottom:16px;">Or fill in details manually:</p>
+
+    <label for="author">Author(s)</label>
+    <input type="text" id="author" placeholder="Last, First or First Last">
+
+    <label for="title-field">Title</label>
+    <input type="text" id="title-field" placeholder="Article, book, or page title">
+
+    <label for="pub-field">Publisher / Journal / Website</label>
+    <input type="text" id="pub-field" placeholder="Publisher name">
+
+    <label for="date-field">Publication date</label>
+    <input type="text" id="date-field" placeholder="e.g. 2023, March 15 2023">
+
+    <button class="btn" id="cite-btn" onclick="cite()">
+      <span id="btn-text">Format Citation</span>
+    </button>
+  </div>
+
+  <div id="status" class="status-msg"></div>
+
+  <div id="result-box">
+    <p class="result-label" id="result-label">MLA Citation</p>
+    <div class="citation-output" id="citation-out"></div>
+    <div class="copy-row">
+      <button class="copy-btn" onclick="copyCitation()">📋 Copy citation</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentStyle = 'MLA';
+function setStyle(s, btn) {
+  currentStyle = s;
+  document.querySelectorAll('.style-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function cite() {
+  const apiKey = document.getElementById('api-key').value.trim();
+  const source = document.getElementById('source-input').value.trim();
+  const author = document.getElementById('author').value.trim();
+  const title = document.getElementById('title-field').value.trim();
+  const pub = document.getElementById('pub-field').value.trim();
+  const date = document.getElementById('date-field').value.trim();
+
+  if (!apiKey) { showStatus('Please enter your Anthropic API key above.', 'error'); return; }
+  if (!source && !title) { showStatus('Please enter a URL, source info, or at least a title.', 'error'); return; }
+
+  const statusEl = document.getElementById('status');
+  const resultBox = document.getElementById('result-box');
+  statusEl.className = 'status-msg'; statusEl.textContent = '';
+  document.getElementById('cite-btn').disabled = true;
+  document.getElementById('btn-text').innerHTML = '<span class="spinner">⟳</span> Formatting…';
+  resultBox.style.display = 'none';
+
+  let sourceDesc = source ? `Source/URL: ${source}` : '';
+  if (author) sourceDesc += `\nAuthor: ${author}`;
+  if (title) sourceDesc += `\nTitle: ${title}`;
+  if (pub) sourceDesc += `\nPublisher/Journal/Website: ${pub}`;
+  if (date) sourceDesc += `\nDate: ${date}`;
+
+  const prompt = `Format a ${currentStyle} citation for the following source. Return ONLY the formatted citation text, nothing else — no labels, no explanation, no markdown.
+
+If it is a URL, infer the source type (website, article, etc.) and format accordingly for ${currentStyle} style.
+Use today's access date as ${new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'})} if needed for web sources.
+
+${sourceDesc}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 512,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e?.error?.message || `API error ${res.status}`); }
+    const data = await res.json();
+    const citation = data.content[0].text.trim();
+    document.getElementById('citation-out').textContent = citation;
+    document.getElementById('result-label').textContent = currentStyle + ' Citation';
+    resultBox.style.display = 'block';
+    window._citation = citation;
+  } catch(e) {
+    showStatus('Error: ' + e.message, 'error');
+  } finally {
+    document.getElementById('cite-btn').disabled = false;
+    document.getElementById('btn-text').textContent = 'Format Citation';
+  }
+}
+
+function copyCitation() {
+  if (!window._citation) return;
+  navigator.clipboard.writeText(window._citation).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = window._citation; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  });
+  const btn = event.target;
+  btn.textContent = '✓ Copied!';
+  setTimeout(() => btn.textContent = '📋 Copy citation', 1800);
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status-msg ' + type;
+}
+</script>
